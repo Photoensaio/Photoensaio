@@ -41,7 +41,14 @@ input:focus{border-color:var(--accent-blue)}
 .photo-item.selected{border-color: var(--accent-blue); transform: scale(0.97)}
 .photo-item.selected img{filter: brightness(1.1)}
 
+.watermark{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; pointer-events:none; opacity:0.15}
+.watermark span{font-size:12px; transform:rotate(-35deg); color:#fff; font-weight:bold; letter-spacing:3px}
+
 .selection-bar{position:fixed; bottom:30px; left:290px; right:30px; background:rgba(15,15,18,0.92); backdrop-filter:blur(15px); padding:20px 40px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0, 209, 255, 0.3); z-index:100; box-shadow:0 20px 40px rgba(0,0,0,0.8)}
+.info-txt .status{font-family:var(--fs); font-size:22px}
+.info-txt .hint{font-size:12px; color:var(--text-muted); margin-top:5px}
+
+.success-screen{text-align:center; padding:120px 20px; display:none}
 </style>
 </head>
 <body oncontextmenu="return false">
@@ -73,7 +80,7 @@ input:focus{border-color:var(--accent-blue)}
         <input id="c-edit-id" type="hidden">
         <input id="c-name" type="text" placeholder="Nome do Cliente">
         <input id="c-pass" type="text" placeholder="Senha de Acesso">
-        <textarea id="c-links" rows="8" placeholder="Cole os links aqui (pode separar por espaço, vírgula ou linha)"></textarea>
+        <textarea id="c-links" rows="8" placeholder="Cole os links das fotos aqui"></textarea>
         <div style="margin-top:10px">
             <label style="font-size:12px; color:var(--text-muted)">FOTOS NO PACOTE:</label><br>
             <input id="c-pacote" type="number" value="10" style="width:120px; margin-top:5px">
@@ -85,6 +92,7 @@ input:focus{border-color:var(--accent-blue)}
     <div id="page-galeria" class="page">
       <div id="login-area" style="text-align:center; padding-top:100px; max-width:400px; margin:0 auto">
         <h2 id="cliente-tit" style="font-family:var(--fs); font-size:36px">Olá!</h2>
+        <p style="color:var(--text-muted); margin-bottom:40px">Acesse sua galeria privada com a senha fornecida.</p>
         <input id="pass-input" type="password" placeholder="Sua senha" style="text-align:center; font-size:18px">
         <button class="btn" onclick="abrirGaleria()" style="width:100%">Entrar</button>
       </div>
@@ -92,9 +100,9 @@ input:focus{border-color:var(--accent-blue)}
         <h2 id="boas-vindas" style="font-family:var(--fs); font-size:32px">Sua Seleção</h2>
         <div class="photo-grid" id="grid"></div>
       </div>
-      <div id="finish-area" style="display:none; text-align:center; padding:100px 20px">
+      <div id="finish-area" class="success-screen">
         <h2 style="color:var(--accent-blue); font-family:var(--fs); font-size:32px">Seleção Enviada!</h2>
-        <p>Em breve você receberá os arquivos finais.</p>
+        <p>Suas fotos já foram selecionadas. Em breve, realizaremos o envio oficial em alta resolução. Obrigado!</p>
       </div>
     </div>
   </div>
@@ -103,7 +111,7 @@ input:focus{border-color:var(--accent-blue)}
 <div class="selection-bar" id="bar" style="display:none">
   <div class="info-txt">
     <div class="status"><b id="sel-count">0</b> <span style="font-size:15px; opacity:0.6">de</span> <span id="p-total">10</span></div>
-    <div class="hint" id="status-hint">Inclusas no seu pacote.</div>
+    <div class="hint" id="status-hint">Inclusas no seu pacote oficial.</div>
   </div>
   <button class="btn" onclick="enviarWhats()" style="padding:15px 40px; border-radius:50px">Finalizar Seleção</button>
 </div>
@@ -113,12 +121,9 @@ let database = JSON.parse(localStorage.getItem('pe_db')) || [];
 let selecionadas = [];
 let atual = null;
 
-// FORMATAÇÃO INTELIGENTE DE LINKS
 function extrairLinks(texto) {
-    // Regex para pegar qualquer coisa que comece com http ou https
     const regex = /(https?:\/\/[^\s,]+)/g;
     let links = texto.match(regex) || [];
-    
     return links.map(link => {
         if(link.includes('drive.google.com')){
             let id = '';
@@ -129,6 +134,20 @@ function extrairLinks(texto) {
         return link;
     });
 }
+
+window.onload = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const idEnsaio = urlParams.get('id');
+    if(idEnsaio) {
+        atual = database.find(e => e.id == idEnsaio);
+        if(atual) {
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('cliente-tit').innerText = `Olá, ${atual.nome}!`;
+            showPage('galeria');
+            if(localStorage.getItem('done_' + idEnsaio)) mostrarTelaFinal();
+        }
+    } else renderDash();
+};
 
 function renderDash(){
   const search = document.getElementById('dash-search').value.toLowerCase();
@@ -142,8 +161,8 @@ function renderDash(){
       <div class="link-box">${baseUrl}?id=${e.id}</div>
       <div style="display:flex; gap:10px">
         <button class="btn-alt" onclick="prepararEdicao(${e.id})">✏️ Editar</button>
-        <button class="btn-alt" onclick="copyLink('${baseUrl}?id=${e.id}')">📋 Copiar Link</button>
-        <button class="btn-alt" style="border-color:#ff4444; color:#ff4444" onclick="excluir(${e.id})">🗑️ Apagar</button>
+        <button class="btn-alt" onclick="copyLink('${baseUrl}?id=${e.id}')">📋 Link</button>
+        <button class="btn-alt" style="border-color:#ff4444; color:#ff4444" onclick="excluir(${e.id})">🗑️</button>
       </div>
     </div>
   `).join('') || "Nenhum álbum.";
@@ -156,11 +175,11 @@ function salvarEnsaio(){
   const links = extrairLinks(document.getElementById('c-links').value);
   const pacote = document.getElementById('c-pacote').value;
 
-  if(!nome || links.length === 0) return alert("Preencha o nome e cole os links!");
+  if(!nome || links.length === 0) return alert("Erro: Nome e Links são obrigatórios!");
 
   if(idEdit) {
-    const index = database.findIndex(e => e.id == idEdit);
-    database[index] = { id: Number(idEdit), nome, pass, links, pacote };
+    const idx = database.findIndex(e => e.id == idEdit);
+    database[idx] = { id: Number(idEdit), nome, pass, links, pacote };
   } else {
     database.unshift({ id: Date.now(), nome, pass, links, pacote });
   }
@@ -171,6 +190,64 @@ function salvarEnsaio(){
   showPage('dash', document.getElementById('nav-dash'));
 }
 
+function abrirGaleria(){
+  if(atual && atual.pass === document.getElementById('pass-input').value){
+    document.getElementById('login-area').style.display='none';
+    document.getElementById('galeria-area').style.display='block';
+    document.getElementById('bar').style.display='flex';
+    document.getElementById('p-total').innerText = atual.pacote;
+    document.getElementById('boas-vindas').innerText = `Seleção de ${atual.nome}`;
+    
+    document.getElementById('grid').innerHTML = atual.links.map((l, i) => `
+      <div class="photo-item" id="p-${i}" onclick="toggle(${i})">
+        <div class="watermark"><span>PHOTO ENSAIO</span></div>
+        <img src="${l}" loading="lazy">
+      </div>
+    `).join('');
+  } else alert("Senha incorreta.");
+}
+
+function toggle(i){
+  const el = document.getElementById('p-'+i);
+  el.classList.toggle('selected');
+  if(selecionadas.includes(i)) selecionadas = selecionadas.filter(x => x !== i);
+  else selecionadas.push(i);
+  
+  const count = selecionadas.length;
+  const pacote = parseInt(atual.pacote);
+  const extra = Math.max(0, count - pacote);
+  
+  document.getElementById('sel-count').innerText = count;
+  document.getElementById('sel-count').style.color = count > pacote ? 'var(--green)' : 'var(--accent-blue)';
+  
+  if(count > pacote) {
+      document.getElementById('status-hint').innerHTML = `<b>${extra} foto(s) extra(s)</b> selecionada(s). Valor: R$ 19,90/cada.`;
+  } else {
+      document.getElementById('status-hint').innerText = "Inclusas no seu pacote oficial.";
+  }
+}
+
+function enviarWhats(){
+  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}\n✅ Total: ${selecionadas.length}`);
+  localStorage.setItem('done_' + atual.id, "true");
+  window.open(`https://wa.me/5548996665391?text=${msg}`);
+  mostrarTelaFinal();
+}
+
+function mostrarTelaFinal(){
+    document.getElementById('login-area').style.display='none';
+    document.getElementById('galeria-area').style.display='none';
+    document.getElementById('bar').style.display='none';
+    document.getElementById('finish-area').style.display='block';
+}
+
+function showPage(id, btn){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
 function prepararEdicao(id){
   const e = database.find(x => x.id == id);
   document.getElementById('c-edit-id').value = e.id;
@@ -178,7 +255,6 @@ function prepararEdicao(id){
   document.getElementById('c-pass').value = e.pass;
   document.getElementById('c-links').value = e.links.join('\n');
   document.getElementById('c-pacote').value = e.pacote;
-  
   document.getElementById('form-title').innerText = "Editar Ensaio";
   document.getElementById('btn-save').innerText = "Salvar Alterações";
   showPage('novo', document.getElementById('nav-novo'));
@@ -194,59 +270,10 @@ function limparForm(){
   document.getElementById('btn-save').innerText = "Criar Galeria Profissional";
 }
 
-// Funções de galeria e login permanecem as mesmas (com melhorias de performance)
-window.onload = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const idEnsaio = urlParams.get('id');
-    if(idEnsaio) {
-        atual = database.find(e => e.id == idEnsaio);
-        if(atual) {
-            document.getElementById('sidebar').style.display = 'none';
-            document.querySelector('.main').style.padding = '20px';
-            showPage('galeria');
-        }
-    } else renderDash();
-};
-
-function showPage(id, btn){
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
-}
-
-function abrirGaleria(){
-  if(atual && atual.pass === document.getElementById('pass-input').value){
-    document.getElementById('login-area').style.display='none';
-    document.getElementById('galeria-area').style.display='block';
-    document.getElementById('bar').style.display='flex';
-    document.getElementById('p-total').innerText = atual.pacote;
-    document.getElementById('grid').innerHTML = atual.links.map((l, i) => `
-      <div class="photo-item" id="p-${i}" onclick="toggle(${i})">
-        <div class="watermark"><span>PHOTO ENSAIO</span></div>
-        <img src="${l}" loading="lazy">
-      </div>
-    `).join('');
-  } else alert("Senha incorreta.");
-}
-
-function toggle(i){
-  const el = document.getElementById('p-'+i);
-  el.classList.toggle('selected');
-  if(selecionadas.includes(i)) selecionadas = selecionadas.filter(x => x !== i);
-  else selecionadas.push(i);
-  document.getElementById('sel-count').innerText = selecionadas.length;
-}
-
-function enviarWhats(){
-  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}`);
-  window.open(`https://wa.me/5548996665391?text=${msg}`);
-}
-
 function copyLink(l){ navigator.clipboard.writeText(l); alert("Copiado!"); }
 function excluir(id){ if(confirm("Apagar?")) { database = database.filter(e => e.id != id); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); } }
 function exportarBackup(){ const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database)); a.download = "backup.json"; a.click(); }
-function importarBackup(ev){ const r = new FileReader(); r.onload = (e) => { database = JSON.parse(e.target.result); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); }; r.readAsText(ev.target.files[0]); }
+function importarBackup(ev){ const r = new FileReader(); r.onload = (e) => { try { database = JSON.parse(e.target.result); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); alert("Sucesso!"); } catch(err) { alert("Erro no arquivo!"); } }; r.readAsText(ev.target.files[0]); }
 </script>
 </body>
 </html>
