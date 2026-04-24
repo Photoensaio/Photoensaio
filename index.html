@@ -45,11 +45,7 @@ input:focus{border-color:var(--accent-blue)}
 .watermark span{font-size:12px; transform:rotate(-35deg); color:#fff; font-weight:bold; letter-spacing:3px}
 
 .selection-bar{position:fixed; bottom:30px; left:290px; right:30px; background:rgba(15,15,18,0.92); backdrop-filter:blur(15px); padding:20px 40px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0, 209, 255, 0.3); z-index:100; box-shadow:0 20px 40px rgba(0,0,0,0.8)}
-.info-txt .status{font-family:var(--fs); font-size:22px}
 
-.success-screen{text-align:center; padding:120px 20px; display:none}
-
-/* Estilo da modal de seleção */
 .modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000; padding:50px; overflow-y:auto}
 .modal-content{background:var(--bg2); max-width:800px; margin:0 auto; padding:30px; border-radius:20px; border:1px solid var(--accent-blue)}
 </style>
@@ -112,10 +108,6 @@ input:focus{border-color:var(--accent-blue)}
         <h2 id="boas-vindas" style="font-family:var(--fs); font-size:32px">Sua Seleção</h2>
         <div class="photo-grid" id="grid"></div>
       </div>
-      <div id="finish-area" class="success-screen">
-        <h2 style="color:var(--accent-blue); font-family:var(--fs); font-size:32px">Seleção Enviada!</h2>
-        <p>Suas fotos já foram selecionadas. Obrigado!</p>
-      </div>
     </div>
   </div>
 </div>
@@ -132,6 +124,7 @@ let database = JSON.parse(localStorage.getItem('pe_db')) || [];
 let selecionadas = [];
 let atual = null;
 
+// NOVA FUNÇÃO DE LINK PARA EVITAR O ERRO DO GOOGLE
 function extrairLinks(texto) {
     const regex = /(https?:\/\/[^\s,]+)/g;
     return (texto.match(regex) || []).map(link => {
@@ -139,7 +132,8 @@ function extrairLinks(texto) {
             let id = '';
             if(link.includes('/d/')) id = link.split('/d/')[1].split('/')[0];
             else if(link.includes('id=')) id = link.split('id=')[1].split('&')[0];
-            return `https://docs.google.com/uc?id=${id}`;
+            // Formato de link mais robusto para visualização direta
+            return `https://lh3.googleusercontent.com/d/${id}`;
         }
         return link;
     });
@@ -154,18 +148,14 @@ window.onload = () => {
             document.getElementById('sidebar').style.display = 'none';
             document.getElementById('cliente-tit').innerText = `Olá, ${atual.nome}!`;
             showPage('galeria');
-            if(localStorage.getItem('done_' + idEnsaio)) mostrarTelaFinal();
         }
     } else renderDash();
 };
 
 function renderDash(){
-  const search = document.getElementById('dash-search').value.toLowerCase();
   const lista = document.getElementById('lista-ensaios');
   const baseUrl = window.location.href.split('?')[0];
-  const filtered = database.filter(e => e.nome.toLowerCase().includes(search));
-  
-  lista.innerHTML = filtered.map(e => `
+  lista.innerHTML = database.map(e => `
     <div class="ensaio-item">
       <div style="display:flex; justify-content:space-between">
         <b>${e.nome} (${e.pacote} fotos)</b>
@@ -188,7 +178,7 @@ function salvarEnsaio(){
   const links = extrairLinks(document.getElementById('c-links').value);
   const pacote = document.getElementById('c-pacote').value;
 
-  if(!nome || links.length === 0) return alert("Erro: Nome e Links são obrigatórios!");
+  if(!nome || links.length === 0) return alert("Preencha os campos!");
 
   if(idEdit) {
     const idx = database.findIndex(e => e.id == idEdit);
@@ -198,9 +188,7 @@ function salvarEnsaio(){
   }
 
   localStorage.setItem('pe_db', JSON.stringify(database));
-  limparForm();
-  renderDash();
-  showPage('dash', document.getElementById('nav-dash'));
+  limparForm(); renderDash(); showPage('dash', document.getElementById('nav-dash'));
 }
 
 function abrirGaleria(){
@@ -209,11 +197,10 @@ function abrirGaleria(){
     document.getElementById('galeria-area').style.display='block';
     document.getElementById('bar').style.display='flex';
     document.getElementById('p-total').innerText = atual.pacote;
-    document.getElementById('boas-vindas').innerText = `Seleção de ${atual.nome}`;
     document.getElementById('grid').innerHTML = atual.links.map((l, i) => `
       <div class="photo-item" id="p-${i}" onclick="toggle(${i})">
         <div class="watermark"><span>PHOTO ENSAIO</span></div>
-        <img src="${l}" loading="lazy">
+        <img src="${l}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400?text=Erro+no+Google+Drive'">
       </div>
     `).join('');
   } else alert("Senha incorreta.");
@@ -228,52 +215,37 @@ function toggle(i){
 }
 
 function enviarWhats(){
-  const linksEscolhidos = selecionadas.map(i => atual.links[i]);
   const msg = encodeURIComponent(`Olá! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}`);
-  
-  // Envia a informação para o seu Dashboard (localStorage sincronizado)
-  atual.selecionadas_links = linksEscolhidos;
+  atual.selecionadas_links = selecionadas.map(i => atual.links[i]);
   const dbIndex = database.findIndex(e => e.id == atual.id);
   database[dbIndex] = atual;
   localStorage.setItem('pe_db', JSON.stringify(database));
-  
-  localStorage.setItem('done_' + atual.id, "true");
   window.open(`https://wa.me/5548996665391?text=${msg}`);
-  mostrarTelaFinal();
 }
 
 function verSelecao(id){
     const e = database.find(x => x.id == id);
-    document.getElementById('modal-title').innerText = `Fotos de ${e.nome}`;
     document.getElementById('modal-lista-links').innerHTML = e.selecionadas_links.map((link, i) => `
-        <div style="background:var(--bg3); padding:15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center">
-            <span style="font-size:12px; color:var(--accent-blue)">Foto #${i+1}</span>
-            <a href="${link}" target="_blank" class="btn-alt" style="text-decoration:none; color:var(--green)">Abrir no Drive ↗</a>
+        <div style="background:var(--bg3); padding:10px; border-radius:10px; display:flex; justify-content:space-between">
+            <span>Foto ${i+1}</span>
+            <a href="${link}" target="_blank" style="color:var(--accent-blue)">Abrir Original</a>
         </div>
     `).join('');
     document.getElementById('modal-selecao').style.display = 'block';
 }
 
 function fecharModal(){ document.getElementById('modal-selecao').style.display = 'none'; }
-function mostrarTelaFinal(){
-    document.getElementById('login-area').style.display='none';
-    document.getElementById('galeria-area').style.display='none';
-    document.getElementById('bar').style.display='none';
-    document.getElementById('finish-area').style.display='block';
-}
 function showPage(id, btn){
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
+  if(btn) {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
 }
-function limparForm(){
-  document.getElementById('c-edit-id').value = ""; document.getElementById('c-name').value = "";
-  document.getElementById('c-pass').value = ""; document.getElementById('c-links').value = "";
-}
+function limparForm(){ document.getElementById('c-edit-id').value = ""; document.getElementById('c-name').value = ""; document.getElementById('c-links').value = ""; }
 function copyLink(l){ navigator.clipboard.writeText(l); alert("Copiado!"); }
 function excluir(id){ if(confirm("Apagar?")) { database = database.filter(e => e.id != id); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); } }
-function exportarBackup(){ const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database)); a.download = "backup.json"; a.click(); }
 function prepararEdicao(id){
   const e = database.find(x => x.id == id);
   document.getElementById('c-edit-id').value = e.id;
