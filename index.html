@@ -3,205 +3,158 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Photo EnsAIo — Catálogo</title>
+<title>Photo EnsAIo — Seleção de Fotos</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --accent-blue: #00D1FF;
-  --accent-purple: #9D50BB;
-  --bg:#050505; --bg2:#0F0F12; --bg3:#1A1A20;
-  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.15);
-  --text:#F0EDE8; --text2:#A09890; --text3:#6A6460;
-  --green:#7EC832; --red:#E24B4A;
-  --fd:'Playfair Display',serif; --fb:'DM Sans',sans-serif;
-  --r:10px; --rl:16px;
+  --accent-blue: #00D1FF; --accent-purple: #9D50BB;
+  --bg:#050505; --bg2:#0F0F12; --text:#F0EDE8; --text3:#6A6460;
+  --green:#7EC832; --red:#E24B4A; --fb:'DM Sans',sans-serif;
 }
-body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh}
-
+body{font-family:var(--fb);background:var(--bg);color:var(--text);margin:0; -webkit-user-select:none; user-select:none;}
 .app{display:flex;min-height:100vh}
-.sidebar{width:240px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 0;position:sticky;top:0;height:100vh}
-.sidebar-logo{font-family:var(--fd);font-size:22px;color:#FFF;padding:0 24px 28px;border-bottom:1px solid var(--border); letter-spacing: 1px;}
-.sidebar-logo b {color: var(--accent-blue);}
-.sidebar-logo span{display:block;font-family:var(--fb);font-size:10px;color:var(--accent-purple);letter-spacing:.12em;text-transform:uppercase;margin-top:2px; font-weight: 600;}
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid rgba(255,255,255,0.1);padding:28px 0;position:sticky;top:0;height:100vh}
+.sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;padding:0 24px 28px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.sidebar-logo b{color:var(--accent-blue)}
+.nav-item{display:block;padding:12px 24px;color:var(--text);text-decoration:none;cursor:pointer;}
+.nav-item:hover, .nav-item.active{background:rgba(0,209,255,0.1);color:var(--accent-blue)}
+.main{flex:1;padding:40px;}
+.page{display:none} .page.active{display:block}
+.card{background:var(--bg2);padding:25px;border-radius:15px;border:1px solid rgba(255,255,255,0.1);margin-bottom:20px}
+.form-group{margin-bottom:15px;display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:12px;color:var(--text3);text-transform:uppercase}
+.form-group input{background:#1A1A20;border:1px solid rgba(255,255,255,0.2);padding:12px;color:#fff;border-radius:8px}
+.btn{background:linear-gradient(90deg, var(--accent-purple), var(--accent-blue));color:#fff;border:none;padding:15px;border-radius:8px;cursor:pointer;font-weight:600;width:100%}
 
-.nav{padding:20px 12px;flex:1}
-.nav-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:4px;border:none;background:none;width:100%;text-align:left;font-family:var(--fb)}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:rgba(0, 209, 255, 0.1);color:var(--accent-blue)}
-
-.main{flex:1;overflow-y:auto}
-.page{display:none;padding:40px 44px}
-.page.active{display:block}
-
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
-.page-title{font-family:var(--fd);font-size:28px;font-weight:400}
-
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px}
-.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px}
-.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.stat-val{font-size:28px;font-family:var(--fd);font-weight:400}
-.stat-val.blue{color:var(--accent-blue)}
-
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:24px 28px;margin-bottom:24px}
-.card-title{font-size:13px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:20px}
-
-.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-group.full{grid-column:1/-1}
-.form-group label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em}
-.form-group input, .form-group select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;font-family:var(--fb);font-size:14px;color:var(--text);outline:none;}
-
-.btn-blue{background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); color:#FFF;border:none;padding:14px 28px;border-radius:var(--r);font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;width:100%; transition: opacity 0.2s;}
-
-.ensaio-row{display:flex;align-items:center;padding:16px 20px;border-radius:var(--rl);border:1px solid var(--border);background:var(--bg2);margin-bottom:10px;gap:16px;}
-.ensaio-avatar{width:40px;height:40px;border-radius:50%;background: linear-gradient(45deg, var(--accent-purple), var(--accent-blue)); color:#FFF;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ensaio-info{flex:1;min-width:0}
-.ensaio-name{font-size:15px;font-weight:500;margin-bottom:2px}
-
-.row-actions{display:flex;gap:12px;align-items:center;}
-.btn-del{background: none; border: none; color: var(--red); cursor: pointer; padding: 5px; opacity: 0.6;}
-
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent-blue);padding:12px 24px;border-radius:30px;font-size:14px;opacity:0;transition:0.3s;z-index:9999;}
-.toast.show{opacity:1; bottom:50px;}
+/* Estilo da Galeria Cliente */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:15px;margin-top:20px}
+.photo-item{aspect-ratio:3/4;background:#1A1A20;border-radius:10px;position:relative;overflow:hidden;border:3px solid transparent;cursor:pointer;transition:0.2s}
+.photo-item img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.photo-item.selected{border-color:var(--accent-blue);transform:scale(0.95)}
+.watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none;opacity:0.3}
+.watermark span{font-size:12px;transform:rotate(-30deg);white-space:nowrap;color:#fff;font-weight:bold;letter-spacing:2px}
+.selection-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(15,15,18,0.95);padding:20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--accent-blue);z-index:100}
 </style>
 </head>
-<body>
+<body oncontextmenu="return false" onkeydown="return checkKey(event)">
 
 <div class="app">
   <div class="sidebar">
-    <div class="sidebar-logo">PHOTO<b>ENSAIO</b><span>Estúdio de Fotos IA</span></div>
-    <nav class="nav">
-      <button class="nav-item active" onclick="goPage('admin',this)">◈ Dashboard</button>
-      <button class="nav-item" onclick="goPage('novo',this)">+ Novo ensaio</button>
-      <button class="nav-item" onclick="goPage('ensaios',this)">▦ Lista de Ensaios</button>
-    </nav>
+    <div class="sidebar-logo">PHOTO<b>ENSAIO</b></div>
+    <div class="nav-item active" onclick="showPage('admin')">Painel ADM</div>
+    <div class="nav-item" onclick="showPage('galeria')">Ver Galeria (Cliente)</div>
   </div>
 
   <div class="main">
     <div id="page-admin" class="page active">
-      <div class="topbar"><h1 class="page-title">Dashboard</h1></div>
-      <div class="stats-row">
-        <div class="stat"><div class="stat-label">Total de ensaios</div><div class="stat-val blue" id="s-total">0</div></div>
-        <div class="stat"><div class="stat-label">Novos</div><div class="stat-val" id="s-new">0</div></div>
-        <div class="stat"><div class="stat-label">Pendentes</div><div class="stat-val" id="s-pend">0</div></div>
-        <div class="stat"><div class="stat-label">Finalizados</div><div class="stat-val" id="s-done">0</div></div>
-      </div>
+      <h2>Criar Novo Álbum</h2>
       <div class="card">
-        <div class="card-title">Atividade Recente</div>
-        <div id="dash-list"></div>
+        <div class="form-group"><label>Nome do Cliente</label><input id="c-name" type="text" placeholder="Ex: Ana Souza"></div>
+        <div class="form-group"><label>Senha do Álbum</label><input id="c-pass" type="text" placeholder="Ex: ana123"></div>
+        <div class="form-group"><label>Link das Fotos (Imgur ou similar)</label><input id="c-links" type="text" placeholder="Cole os links das fotos separados por vírgula"></div>
+        <div class="form-group"><label>Qtd Fotos no Pacote</label><input id="c-pacote" type="number" value="5"></div>
+        <button class="btn" onclick="gerarAlbum()">Gerar Álbum e Copiar Link</button>
       </div>
+      <div id="lista-albuns"></div>
     </div>
 
-    <div id="page-novo" class="page">
-      <div class="topbar"><h1 class="page-title">Novo ensaio</h1></div>
-      <div class="card">
-        <div class="form-grid">
-          <div class="form-group"><label>Nome do cliente</label><input id="f-name" type="text" placeholder="Ex: Ana Lima" /></div>
-          <div class="form-group"><label>WhatsApp</label><input id="f-wa" type="text" placeholder="71999990000" /></div>
-          <div class="form-group"><label>Senha do álbum</label><input id="f-pass" type="text" placeholder="Ex: AnaPhoto" /></div>
-          <div class="form-group"><label>Fotos no pacote</label><input id="f-pacote" type="number" value="5" /></div>
-          <div class="form-group"><label>Preço foto extra (R$)</label><input id="f-extra" type="number" value="19.90" step="0.01" /></div>
-          <div class="form-group"><label>Total de fotos</label><input id="f-total" type="number" value="20" /></div>
-        </div>
-        <button class="btn-blue" style="margin-top:20px" onclick="criarEnsaio()">Criar Álbum do Cliente</button>
+    <div id="page-galeria" class="page">
+      <div id="login-area">
+        <h2>Acesse seu Álbum</h2>
+        <input id="pass-input" type="password" placeholder="Digite sua senha" style="padding:15px; border-radius:8px; border:none; width:200px">
+        <button class="btn" style="width:auto" onclick="acessarGaleria()">Entrar</button>
       </div>
-    </div>
-
-    <div id="page-ensaios" class="page">
-      <div class="topbar"><h1 class="page-title">Gerenciar Ensaios</h1></div>
-      <div id="ensaios-list"></div>
+      
+      <div id="galeria-area" style="display:none">
+        <h2 id="cliente-boasvindas">Olá! Selecione suas fotos:</h2>
+        <div class="photo-grid" id="grid"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="selection-bar" id="bar" style="display:none">
+  <div>Selecionadas: <b id="sel-count">0</b> / <span id="pacote-total">0</span></div>
+  <button class="btn" style="width:auto; padding:10px 30px" onclick="finalizarSelecao()">Enviar Seleção p/ WhatsApp</button>
+</div>
 
 <script>
-let ensaios = JSON.parse(localStorage.getItem('photoensaio_db')) || [];
+let database = JSON.parse(localStorage.getItem('pe_db')) || [];
+let selecionadas = [];
+let albumAtual = null;
 
-function save() {
-  localStorage.setItem('photoensaio_db', JSON.stringify(ensaios));
-}
-
-function goPage(id, btn) {
+function showPage(id){
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  if(btn) btn.classList.add('active');
-  if(id === 'admin') renderDash();
-  if(id === 'ensaios') renderEnsaios();
+  document.getElementById('page-'+id).classList.add('active');
 }
 
-function renderDash() {
-  document.getElementById('s-total').textContent = ensaios.length;
-  document.getElementById('s-new').textContent = ensaios.filter(e => e.status === 'new').length;
-  document.getElementById('s-pend').textContent = ensaios.filter(e => e.status === 'pending').length;
-  document.getElementById('s-done').textContent = ensaios.filter(e => e.status === 'done').length;
-  document.getElementById('dash-list').innerHTML = ensaios.slice(0, 5).map(rowHtml).join('');
+function gerarAlbum(){
+  const nome = document.getElementById('c-name').value;
+  const pass = document.getElementById('c-pass').value;
+  const links = document.getElementById('c-links').value.split(',');
+  const pacote = document.getElementById('c-pacote').value;
+  
+  if(!nome || !pass) return alert("Preencha os dados!");
+  
+  const album = { id: Date.now(), nome, pass, links, pacote };
+  database.push(album);
+  localStorage.setItem('pe_db', JSON.stringify(database));
+  alert("Álbum criado! Cliente já pode acessar com a senha.");
+  location.reload();
 }
 
-function renderEnsaios() {
-  document.getElementById('ensaios-list').innerHTML = ensaios.length ? ensaios.map(rowHtml).join('') : '<div style="color:var(--text3)">Nenhum ensaio criado.</div>';
-}
-
-function rowHtml(e) {
-  const ini = e.name.charAt(0).toUpperCase();
-  return `
-    <div class="ensaio-row">
-      <div class="ensaio-avatar">${ini}</div>
-      <div class="ensaio-info">
-        <div class="ensaio-name">${e.name}</div>
-        <div class="ensaio-meta">${e.totalFotos} fotos • Senha: <b>${e.pass}</b></div>
-      </div>
-      <div class="row-actions">
-        <button class="btn-del" onclick="excluirEnsaio(${e.id})" title="Excluir Ensaio">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-        </button>
-      </div>
-    </div>`;
-}
-
-function criarEnsaio() {
-  const name = document.getElementById('f-name').value;
-  const pass = document.getElementById('f-pass').value;
-  if(!name || !pass) { showToast("Preencha o nome e a senha!"); return; }
-
-  const novo = {
-    id: Date.now(),
-    name,
-    wa: document.getElementById('f-wa').value,
-    pass,
-    pacote: parseInt(document.getElementById('f-pacote').value),
-    extraPrice: parseFloat(document.getElementById('f-extra').value),
-    totalFotos: parseInt(document.getElementById('f-total').value),
-    status: 'new'
-  };
-
-  ensaios.unshift(novo);
-  save();
-  showToast("Ensaio criado com sucesso!");
-  goPage('admin', document.querySelector('.nav-item'));
-}
-
-function excluirEnsaio(id) {
-  if(confirm("Deseja apagar este ensaio?")) {
-    ensaios = ensaios.filter(e => e.id !== id);
-    save();
-    renderDash();
-    renderEnsaios();
-    showToast("Ensaio removido.");
+function acessarGaleria(){
+  const pass = document.getElementById('pass-input').value;
+  albumAtual = database.find(a => a.pass === pass);
+  
+  if(albumAtual){
+    document.getElementById('login-area').style.display = 'none';
+    document.getElementById('galeria-area').style.display = 'block';
+    document.getElementById('bar').style.display = 'flex';
+    document.getElementById('pacote-total').innerText = albumAtual.pacote;
+    renderFotos();
+  } else {
+    alert("Senha incorreta!");
   }
 }
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+function renderFotos(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = albumAtual.links.map((link, i) => `
+    <div class="photo-item" onclick="toggleFoto(${i}, this)">
+      <div class="watermark"><span>PHOTO ENSAIO</span></div>
+      <img src="${link.trim()}">
+    </div>
+  `).join('');
 }
 
-renderDash();
+function toggleFoto(idx, el){
+  if(selecionadas.includes(idx)){
+    selecionadas = selecionadas.filter(i => i !== idx);
+    el.classList.remove('selected');
+  } else {
+    selecionadas.push(idx);
+    el.classList.add('selected');
+  }
+  document.getElementById('sel-count').innerText = selecionadas.size;
+  document.getElementById('sel-count').innerText = selecionadas.length;
+}
+
+function finalizarSelecao(){
+  const msg = encodeURIComponent(`Olá! Sou ${albumAtual.nome} e finalizei minha seleção:\n\nFotos escolhidas: ${selecionadas.map(i => i+1).join(', ')}\nTotal: ${selecionadas.length} fotos.`);
+  window.open(`https://wa.me/5571999990000?text=${msg}`); // COLOQUE SEU WHATSAPP AQUI
+}
+
+// PROTEÇÕES GERAIS
+function checkKey(e){
+  if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false;
+}
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'PrintScreen') {
+        navigator.clipboard.writeText('');
+        alert('Prints são proibidos nesta galeria 🔒');
+    }
+});
 </script>
 </body>
 </html>
