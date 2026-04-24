@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Photo EnsAIo — Seleção Profissional</title>
+<title>Photo EnsAIo — Gestão e Seleção</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
 :root{
   --accent-blue: #00D1FF; --accent-purple: #9D50BB;
-  --bg:#050505; --bg2:#0F0F12; --text:#F0EDE8; --text3:#6A6460;
+  --bg:#050505; --bg2:#0F0F12; --bg3:#1A1A20; --text:#F0EDE8; --text3:#6A6460;
   --green:#7EC832; --red:#E24B4A; --fb:'DM Sans',sans-serif;
 }
 body{font-family:var(--fb);background:var(--bg);color:var(--text);margin:0; overflow-x:hidden; -webkit-user-select:none; user-select:none;}
@@ -16,35 +16,29 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);margin:0; over
 .sidebar{width:240px;background:var(--bg2);border-right:1px solid rgba(255,255,255,0.1);padding:28px 0;position:sticky;top:0;height:100vh;z-index:10}
 .sidebar-logo{font-family:'Playfair Display',serif;font-size:22px;padding:0 24px 28px;border-bottom:1px solid rgba(255,255,255,0.1);color:#fff}
 .sidebar-logo b{color:var(--accent-blue)}
-.nav-item{display:block;padding:12px 24px;color:var(--text);text-decoration:none;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px}
+.nav-item{display:block;padding:12px 24px;color:var(--text2);text-decoration:none;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;transition:0.2s}
 .nav-item:hover, .nav-item.active{background:rgba(0,209,255,0.1);color:var(--accent-blue)}
 .main{flex:1;padding:40px;}
 .page{display:none} .page.active{display:block}
 .card{background:var(--bg2);padding:25px;border-radius:15px;border:1px solid rgba(255,255,255,0.1);margin-bottom:20px}
-.form-group{margin-bottom:15px;display:flex;flex-direction:column;gap:5px}
-.form-group label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
-.form-group input, .form-group textarea{background:#1A1A20;border:1px solid rgba(255,255,255,0.2);padding:12px;color:#fff;border-radius:8px;font-family:var(--fb)}
-.btn{background:linear-gradient(90deg, var(--accent-purple), var(--accent-blue));color:#fff;border:none;padding:15px;border-radius:8px;cursor:pointer;font-weight:600;width:100%;transition:0.3s}
-.btn:hover{opacity:0.8;transform:translateY(-2px)}
+.btn{background:linear-gradient(90deg, var(--accent-purple), var(--accent-blue));color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;transition:0.3s}
+
+/* Dashboard List */
+.ensaio-item{display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid rgba(255,255,255,0.05)}
+.status-badge{font-size:10px; padding:3px 8px; border-radius:10px; text-transform:uppercase}
+.status-new{background:var(--accent-blue); color:#000}
+.status-done{background:var(--green); color:#000}
 
 /* Galeria */
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:20px;margin-top:20px;padding-bottom:120px}
-.photo-item{aspect-ratio:3/4;background:#1A1A20;border-radius:12px;position:relative;overflow:hidden;border:4px solid transparent;cursor:pointer;transition:0.3s}
-.photo-item img{width:100%;height:100%;object-fit:cover;pointer-events:none;filter: brightness(0.7);}
+.photo-item{aspect-ratio:3/4;background:#1A1A20;border-radius:12px;position:relative;overflow:hidden;border:4px solid transparent;cursor:pointer}
+.photo-item img{width:100%;height:100%;object-fit:cover;pointer-events:none;filter: brightness(0.6);}
 .photo-item.selected{border-color:var(--accent-blue);transform:scale(0.96)}
 .photo-item.selected img{filter: brightness(1);}
-.watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none;opacity:0.4}
-.watermark span{font-size:14px;transform:rotate(-30deg);white-space:nowrap;color:#fff;font-weight:bold;letter-spacing:4px;text-shadow: 2px 2px 4px #000;}
+.watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;pointer-events:none;opacity:0.3}
+.watermark span{font-size:12px;transform:rotate(-30deg);white-space:nowrap;color:#fff;font-weight:bold;letter-spacing:2px;text-shadow:1px 1px 2px #000}
 
-.selection-bar{position:fixed;bottom:20px;left:260px;right:20px;background:rgba(15,15,18,0.9);backdrop-filter:blur(10px);padding:20px 30px;border-radius:15px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--accent-blue);z-index:100;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
-.price-tag{font-size:12px;color:var(--text3)}
-.price-tag b{color:var(--green)}
-
-@media (max-width: 768px) {
-  .app{flex-direction:column}
-  .sidebar{width:100%;height:auto;position:relative}
-  .selection-bar{left:10px;right:10px;bottom:10px;flex-direction:column;gap:15px;text-align:center}
-}
+.selection-bar{position:fixed;bottom:20px;left:260px;right:20px;background:rgba(15,15,18,0.9);backdrop-filter:blur(10px);padding:20px;border-radius:15px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--accent-blue);z-index:100}
 </style>
 </head>
 <body oncontextmenu="return false">
@@ -52,39 +46,40 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);margin:0; over
 <div class="app">
   <div class="sidebar">
     <div class="sidebar-logo">PHOTO<b>ENSAIO</b></div>
-    <button class="nav-item active" onclick="showPage('admin', this)">Painel do Estúdio</button>
+    <button class="nav-item active" onclick="showPage('dash', this)">Dashboard</button>
+    <button class="nav-item" onclick="showPage('novo', this)">+ Novo Ensaio</button>
     <button class="nav-item" onclick="showPage('galeria', this)">Área do Cliente</button>
   </div>
 
   <div class="main">
-    <div id="page-admin" class="page active">
-      <h2 style="font-family:'Playfair Display'">Novo Álbum</h2>
+    <div id="page-dash" class="page active">
+      <h2 style="font-family:'Playfair Display'">Controle de Ensaios</h2>
+      <div class="card" id="lista-ensaios">
+        </div>
+    </div>
+
+    <div id="page-novo" class="page">
+      <h2 style="font-family:'Playfair Display'">Criar Galeria</h2>
       <div class="card">
-        <div class="form-group"><label>Nome do Cliente</label><input id="c-name" type="text" placeholder="Ex: Maria Silva"></div>
-        <div class="form-group"><label>Senha do Cliente</label><input id="c-pass" type="text" placeholder="Crie uma senha"></div>
-        <div class="form-group">
-            <label>Links do Drive (Cole todos de uma vez)</label>
-            <textarea id="c-links" rows="5" placeholder="Selecione as fotos no Drive, clique em 'Copiar Links' e cole tudo aqui."></textarea>
+        <input id="c-name" type="text" placeholder="Nome do Cliente" style="width:95%; padding:12px; margin-bottom:10px; background:#1A1A20; color:#fff; border:1px solid #333; border-radius:8px">
+        <input id="c-pass" type="text" placeholder="Senha de Acesso" style="width:95%; padding:12px; margin-bottom:10px; background:#1A1A20; color:#fff; border:1px solid #333; border-radius:8px">
+        <textarea id="c-links" rows="5" placeholder="Cole os links do Drive aqui" style="width:95%; padding:12px; margin-bottom:10px; background:#1A1A20; color:#fff; border:1px solid #333; border-radius:8px"></textarea>
+        <div style="display:flex; gap:10px; margin-bottom:15px">
+            <input id="c-pacote" type="number" value="20" style="width:50%; padding:12px; background:#1A1A20; color:#fff; border:1px solid #333; border-radius:8px">
+            <input id="c-extra" type="number" value="19.90" style="width:50%; padding:12px; background:#1A1A20; color:#fff; border:1px solid #333; border-radius:8px">
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px">
-            <div class="form-group"><label>Qtd no Pacote</label><input id="c-pacote" type="number" value="20"></div>
-            <div class="form-group"><label>Valor Foto Extra (R$)</label><input id="c-val-extra" type="number" value="19.90" step="0.01"></div>
-        </div>
-        <button class="btn" onclick="gerarAlbum()">Criar Galeria Privada</button>
+        <button class="btn" onclick="salvarEnsaio()" style="width:100%">Gerar e Salvar</button>
       </div>
     </div>
 
     <div id="page-galeria" class="page">
-      <div id="login-area" style="text-align:center; padding-top:100px">
-        <h2 style="font-family:'Playfair Display'">Acesse sua Galeria Privada</h2>
-        <input id="pass-input" type="password" placeholder="Digite sua senha" style="padding:15px; border-radius:8px; border:1px solid #333; background:#1A1A20; color:#fff; width:250px; text-align:center; margin-bottom:20px">
-        <br>
-        <button class="btn" style="width:250px" onclick="acessarGaleria()">Abrir Fotos</button>
+      <div id="login-area" style="text-align:center; padding-top:50px">
+        <h2>Acesse seu Álbum</h2>
+        <input id="pass-input" type="password" placeholder="Sua senha" style="padding:15px; border-radius:8px; border:1px solid #333; background:#1A1A20; color:#fff; width:200px">
+        <button class="btn" onclick="abrirGaleria()">Entrar</button>
       </div>
-      
       <div id="galeria-area" style="display:none">
-        <h2 id="cliente-boasvindas">Olá!</h2>
-        <p style="color:var(--text3)">Toque nas fotos para selecionar as suas favoritas.</p>
+        <h2 id="boas-vindas">Olá!</h2>
         <div class="photo-grid" id="grid"></div>
       </div>
     </div>
@@ -92,109 +87,107 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);margin:0; over
 </div>
 
 <div class="selection-bar" id="bar" style="display:none">
-  <div>
-    <div style="font-size:18px">Selecionadas: <b id="sel-count">0</b> / <span id="pacote-total">20</span></div>
-    <div class="price-tag" id="extra-info">Extras: 0 fotos (R$ 0,00)</div>
-  </div>
-  <button class="btn" style="width:auto; padding:15px 40px" onclick="finalizarSelecao()">Finalizar e Enviar Seleção</button>
+  <div>Selecionadas: <b id="sel-count">0</b> / <span id="p-total">0</span></div>
+  <button class="btn" onclick="enviarWhats()">Enviar p/ WhatsApp</button>
 </div>
 
 <script>
 let database = JSON.parse(localStorage.getItem('pe_db')) || [];
 let selecionadas = [];
-let albumAtual = null;
+let atual = null;
 
 function showPage(id, btn){
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id === 'dash') renderDash();
 }
 
-function gerarAlbum(){
+// CONVERSOR DE LINK DO DRIVE
+function formatDriveLink(link){
+    if(link.includes('drive.google.com')){
+        let id = link.split('/d/')[1] || link.split('id=')[1];
+        if(id) id = id.split('/')[0].split('&')[0];
+        return `https://lh3.googleusercontent.com/u/0/d/${id}`;
+    }
+    return link;
+}
+
+function salvarEnsaio(){
   const nome = document.getElementById('c-name').value;
   const pass = document.getElementById('c-pass').value;
-  const rawLinks = document.getElementById('c-links').value;
-  const pacote = document.getElementById('c-pacote').value;
-  const valorExtra = document.getElementById('c-val-extra').value;
+  const rawLinks = document.getElementById('c-links').value.split(/[\s,]+/);
+  const links = rawLinks.filter(l => l.startsWith('http')).map(formatDriveLink);
   
-  const links = rawLinks.split(/[\s,]+/).filter(l => l.startsWith('http'));
-
-  if(!nome || !pass || links.length === 0) return alert("Preencha todos os campos e cole os links das fotos!");
-  
-  const album = { id: Date.now(), nome, pass, links, pacote, valorExtra };
-  database.unshift(album);
+  const novo = { id: Date.now(), nome, pass, links, pacote: document.getElementById('c-pacote').value, extra: document.getElementById('c-extra').value, status: 'new' };
+  database.unshift(novo);
   localStorage.setItem('pe_db', JSON.stringify(database));
-  alert(`Galeria de ${nome} pronta para envio!`);
-  location.reload();
+  alert("Ensaio salvo!");
+  showPage('dash', document.querySelector('.nav-item'));
 }
 
-function acessarGaleria(){
-  const pass = document.getElementById('pass-input').value;
-  albumAtual = database.find(a => a.pass === pass);
-  
-  if(albumAtual){
-    document.getElementById('login-area').style.display = 'none';
-    document.getElementById('galeria-area').style.display = 'block';
-    document.getElementById('bar').style.display = 'flex';
-    document.getElementById('pacote-total').innerText = albumAtual.pacote;
-    document.getElementById('cliente-boasvindas').innerText = `Olá, ${albumAtual.nome}!`;
-    renderFotos();
-  } else {
-    alert("Senha incorreta!");
+function renderDash(){
+  const lista = document.getElementById('lista-ensaios');
+  lista.innerHTML = database.length ? database.map(e => `
+    <div class="ensaio-item">
+      <div>
+        <b>${e.nome}</b> <br>
+        <small style="color:var(--text3)">Senha: ${e.pass} | ${e.links.length} fotos</small>
+      </div>
+      <div>
+        <span class="status-badge ${e.status === 'done' ? 'status-done' : 'status-new'}">${e.status === 'done' ? 'Escolheu' : 'Pendente'}</span>
+        <button onclick="excluir(${e.id})" style="background:none; border:none; color:var(--red); cursor:pointer; margin-left:10px">Excluir</button>
+      </div>
+    </div>
+  `).join('') : "Nenhum ensaio ainda.";
+}
+
+function excluir(id){
+  if(confirm("Apagar este ensaio?")){
+    database = database.filter(e => e.id !== id);
+    localStorage.setItem('pe_db', JSON.stringify(database));
+    renderDash();
   }
 }
 
-function renderFotos(){
-  const grid = document.getElementById('grid');
-  grid.innerHTML = albumAtual.links.map((link, i) => `
-    <div class="photo-item" id="photo-${i}" onclick="toggleFoto(${i})">
-      <div class="watermark"><span>PHOTO ENSAIO</span></div>
-      <img src="${link.trim()}" loading="lazy">
-    </div>
-  `).join('');
+function abrirGaleria(){
+  atual = database.find(a => a.pass === document.getElementById('pass-input').value);
+  if(atual){
+    document.getElementById('login-area').style.display='none';
+    document.getElementById('galeria-area').style.display='block';
+    document.getElementById('bar').style.display='flex';
+    document.getElementById('p-total').innerText = atual.pacote;
+    document.getElementById('boas-vindas').innerText = `Olá, ${atual.nome}!`;
+    
+    document.getElementById('grid').innerHTML = atual.links.map((l, i) => `
+      <div class="photo-item" id="p-${i}" onclick="toggle(${i})">
+        <div class="watermark"><span>PHOTO ENSAIO</span></div>
+        <img src="${l}" onerror="this.src='https://via.placeholder.com/300x400?text=Erro+no+Link+do+Drive'">
+      </div>
+    `).join('');
+  }
 }
 
-function toggleFoto(idx){
-  const el = document.getElementById('photo-'+idx);
-  if(selecionadas.includes(idx)){
-    selecionadas = selecionadas.filter(i => i !== idx);
+function toggle(i){
+  const el = document.getElementById('p-'+i);
+  if(selecionadas.includes(i)){
+    selecionadas = selecionadas.filter(x => x !== i);
     el.classList.remove('selected');
   } else {
-    selecionadas.push(idx);
+    selecionadas.push(i);
     el.classList.add('selected');
   }
-  
-  const total = selecionadas.length;
-  const pacote = parseInt(albumAtual.pacote);
-  const extras = Math.max(0, total - pacote);
-  const valorExtras = (extras * parseFloat(albumAtual.valorExtra)).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-
-  document.getElementById('sel-count').innerText = total;
-  document.getElementById('extra-info').innerHTML = `Extras: <b>${extras} fotos</b> (${valorExtras})`;
+  document.getElementById('sel-count').innerText = selecionadas.length;
 }
 
-function finalizarSelecao(){
-  if(selecionadas.length === 0) return alert("Selecione pelo menos uma foto!");
-  
-  const total = selecionadas.length;
-  const pacote = parseInt(albumAtual.pacote);
-  const extras = Math.max(0, total - pacote);
-  const resumo = selecionadas.map(i => i + 1).sort((a,b) => a-b).join(', ');
-  
-  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Finalizei minha seleção:\n\n👤 Cliente: ${albumAtual.nome}\n📸 Fotos: ${resumo}\n✅ Total: ${total} fotos\n💰 Extras: ${extras} fotos.`);
-  
-  // NÚMERO ATUALIZADO: 5548996665391
+function enviarWhats(){
+  const resumo = selecionadas.map(x => x + 1).join(', ');
+  const msg = encodeURIComponent(`Olá! Finalizei minha seleção:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${resumo}\n✅ Total: ${selecionadas.length}`);
+  atual.status = 'done';
+  localStorage.setItem('pe_db', JSON.stringify(database));
   window.open(`https://wa.me/5548996665391?text=${msg}`);
 }
-
-// Bloqueios de segurança
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'PrintScreen' || (e.ctrlKey && (e.key === 'p' || e.key === 's'))) {
-        e.preventDefault();
-        alert('Capturas de tela e impressões desativadas 🔒');
-    }
-});
 </script>
 </body>
 </html>
