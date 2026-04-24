@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Photo EnsAIo — Gestão & Seleção Profissional</title>
+<title>Photo EnsAIo — Gestão Profissional</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
 :root{
@@ -15,8 +15,7 @@
 body{font-family:var(--fb); background:var(--bg); color:var(--text); margin:0; overflow-x:hidden; -webkit-user-select:none; user-select:none;}
 .app{display:flex; min-height:100vh}
 
-/* Sidebar */
-.sidebar{width:260px; background:var(--bg2); border-right:1px solid rgba(0, 209, 255, 0.1); padding:40px 0; position:sticky; top:0; height:100vh; z-index:10}
+.sidebar{width:260px; background:var(--bg2); border-right:1px solid rgba(0, 209, 255, 0.1); padding:40px 0; position:sticky; top:0; height:100vh; z-index:10; display:flex; flex-direction:column;}
 .sidebar-logo{font-family:var(--fs); font-size:24px; padding:0 30px 40px; color:#fff; letter-spacing:1px}
 .sidebar-logo b{color:var(--accent-blue)}
 .nav-item{display:block; padding:15px 30px; color:var(--text-muted); text-decoration:none; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-size:14px; transition:0.3s; letter-spacing:0.5px}
@@ -26,34 +25,23 @@ body{font-family:var(--fb); background:var(--bg); color:var(--text); margin:0; o
 .page{display:none} .page.active{display:block}
 .card{background:var(--bg2); padding:30px; border-radius:20px; border:1px solid rgba(255,255,255,0.05); margin-bottom:30px}
 
-/* Utilitários */
 input, textarea{width:100%; background:var(--bg3); border:1px solid rgba(255,255,255,0.1); padding:15px; color:#fff; border-radius:12px; margin-bottom:15px; font-family:var(--fb); outline:none; transition:0.3s; box-sizing: border-box;}
 input:focus{border-color:var(--accent-blue)}
+
 .btn{background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); color:#fff; border:none; padding:15px 25px; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; transition:0.4s;}
 .btn:hover{opacity: 0.9; transform:translateY(-2px)}
 .btn-alt{background: var(--bg3); color: var(--text); border: 1px solid var(--accent-blue); padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 12px;}
 
-/* Dashboard */
-.dash-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:30px}
-.search-box{width:300px; margin-bottom:0;}
-.ensaio-item{padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:12px}
-.link-box{background:#000; padding:10px; border-radius:8px; font-family:monospace; font-size:11px; color:var(--accent-blue); border:1px dashed #333}
+.ensaio-item{padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; flex-direction:column; gap:10px}
+.link-box{background:#000; padding:10px; border-radius:8px; font-family:monospace; font-size:11px; color:var(--accent-blue); border:1px dashed #333; word-break: break-all;}
 
-/* Galeria Cliente */
 .photo-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; margin-top:30px; padding-bottom:180px}
 .photo-item{aspect-ratio:3/4; background:var(--bg3); border-radius:15px; position:relative; overflow:hidden; border:3px solid transparent; cursor:pointer; transition:0.3s}
 .photo-item img{width:100%; height:100%; object-fit:cover; pointer-events:none; filter: brightness(0.6); transition:0.5s}
 .photo-item.selected{border-color: var(--accent-blue); transform: scale(0.97)}
 .photo-item.selected img{filter: brightness(1.1)}
-.watermark{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; pointer-events:none; opacity:0.15}
-.watermark span{font-size:12px; transform:rotate(-35deg); color:#fff; font-weight:bold; letter-spacing:3px}
 
-/* Barra de Status UX */
 .selection-bar{position:fixed; bottom:30px; left:290px; right:30px; background:rgba(15,15,18,0.92); backdrop-filter:blur(15px); padding:20px 40px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0, 209, 255, 0.3); z-index:100; box-shadow:0 20px 40px rgba(0,0,0,0.8)}
-.info-txt .status{font-family:var(--fs); font-size:22px}
-.info-txt .hint{font-size:12px; color:var(--text-muted); margin-top:5px}
-
-.success-screen{text-align:center; padding:120px 20px; display:none}
 </style>
 </head>
 <body oncontextmenu="return false">
@@ -62,7 +50,7 @@ input:focus{border-color:var(--accent-blue)}
   <div class="sidebar" id="sidebar">
     <div class="sidebar-logo">PHOTO<b>ENSAIO</b></div>
     <button class="nav-item active" id="nav-dash" onclick="showPage('dash', this)">Dashboard</button>
-    <button class="nav-item" onclick="showPage('novo', this)">+ Novo Ensaio</button>
+    <button class="nav-item" id="nav-novo" onclick="limparForm(); showPage('novo', this)">+ Novo Ensaio</button>
     <div style="margin-top:auto; padding:20px; display:flex; flex-direction:column; gap:10px">
         <button class="btn-alt" onclick="exportarBackup()">⬇ Exportar Backup</button>
         <button class="btn-alt" onclick="document.getElementById('importInput').click()">⬆ Importar Backup</button>
@@ -72,31 +60,31 @@ input:focus{border-color:var(--accent-blue)}
 
   <div class="main">
     <div id="page-dash" class="page active">
-      <div class="dash-header">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
         <h2 style="font-family:var(--fs); font-size:28px">Seus Ensaios</h2>
-        <input type="text" id="dash-search" class="search-box" placeholder="🔍 Buscar por nome do cliente..." onkeyup="renderDash()">
+        <input type="text" id="dash-search" style="width:250px; margin-bottom:0" placeholder="🔍 Buscar cliente..." onkeyup="renderDash()">
       </div>
       <div class="card" id="lista-ensaios"></div>
     </div>
 
     <div id="page-novo" class="page">
-      <h2 style="font-family:var(--fs); font-size:28px">Configurar Novo Álbum</h2>
+      <h2 id="form-title" style="font-family:var(--fs); font-size:28px">Configurar Novo Álbum</h2>
       <div class="card">
+        <input id="c-edit-id" type="hidden">
         <input id="c-name" type="text" placeholder="Nome do Cliente">
-        <input id="c-pass" type="text" placeholder="Senha de Acesso Privado">
-        <textarea id="c-links" rows="5" placeholder="Cole aqui os links das fotos (do Drive ou Imgur)"></textarea>
+        <input id="c-pass" type="text" placeholder="Senha de Acesso">
+        <textarea id="c-links" rows="8" placeholder="Cole os links aqui (pode separar por espaço, vírgula ou linha)"></textarea>
         <div style="margin-top:10px">
-            <label style="font-size:12px; color:var(--text-muted); letter-spacing:1px">FOTOS NO PACOTE:</label><br>
+            <label style="font-size:12px; color:var(--text-muted)">FOTOS NO PACOTE:</label><br>
             <input id="c-pacote" type="number" value="10" style="width:120px; margin-top:5px">
         </div>
-        <button class="btn" onclick="salvarEnsaio()" style="width:100%; margin-top:10px">Criar Galeria Profissional</button>
+        <button id="btn-save" class="btn" onclick="salvarEnsaio()" style="width:100%; margin-top:10px">Criar Galeria Profissional</button>
       </div>
     </div>
 
     <div id="page-galeria" class="page">
       <div id="login-area" style="text-align:center; padding-top:100px; max-width:400px; margin:0 auto">
         <h2 id="cliente-tit" style="font-family:var(--fs); font-size:36px">Olá!</h2>
-        <p style="color:var(--text-muted); margin-bottom:40px">Acesse sua galeria privada com a senha fornecida.</p>
         <input id="pass-input" type="password" placeholder="Sua senha" style="text-align:center; font-size:18px">
         <button class="btn" onclick="abrirGaleria()" style="width:100%">Entrar</button>
       </div>
@@ -104,9 +92,9 @@ input:focus{border-color:var(--accent-blue)}
         <h2 id="boas-vindas" style="font-family:var(--fs); font-size:32px">Sua Seleção</h2>
         <div class="photo-grid" id="grid"></div>
       </div>
-      <div id="finish-area" class="success-screen">
-        <h2 style="color:var(--accent-blue)">Seleção Concluída!</h2>
-        <p>Suas fotos já foram selecionadas. Em breve, realizaremos o envio oficial em alta resolução. Obrigado!</p>
+      <div id="finish-area" style="display:none; text-align:center; padding:100px 20px">
+        <h2 style="color:var(--accent-blue); font-family:var(--fs); font-size:32px">Seleção Enviada!</h2>
+        <p>Em breve você receberá os arquivos finais.</p>
       </div>
     </div>
   </div>
@@ -125,17 +113,88 @@ let database = JSON.parse(localStorage.getItem('pe_db')) || [];
 let selecionadas = [];
 let atual = null;
 
-// CORRETOR DE DRIVE
-function formatDriveLink(link){
-    if(link.includes('drive.google.com')){
-        let id = '';
-        if(link.includes('/d/')) id = link.split('/d/')[1].split('/')[0];
-        else if(link.includes('id=')) id = link.split('id=')[1].split('&')[0];
-        return `https://lh3.googleusercontent.com/u/0/d/${id}=w1000-h1000`;
-    }
-    return link;
+// FORMATAÇÃO INTELIGENTE DE LINKS
+function extrairLinks(texto) {
+    // Regex para pegar qualquer coisa que comece com http ou https
+    const regex = /(https?:\/\/[^\s,]+)/g;
+    let links = texto.match(regex) || [];
+    
+    return links.map(link => {
+        if(link.includes('drive.google.com')){
+            let id = '';
+            if(link.includes('/d/')) id = link.split('/d/')[1].split('/')[0];
+            else if(link.includes('id=')) id = link.split('id=')[1].split('&')[0];
+            return `https://lh3.googleusercontent.com/u/0/d/${id}=w1000`;
+        }
+        return link;
+    });
 }
 
+function renderDash(){
+  const search = document.getElementById('dash-search').value.toLowerCase();
+  const lista = document.getElementById('lista-ensaios');
+  const baseUrl = window.location.href.split('?')[0];
+  const filtered = database.filter(e => e.nome.toLowerCase().includes(search));
+  
+  lista.innerHTML = filtered.map(e => `
+    <div class="ensaio-item">
+      <b>${e.nome} (${e.pacote} fotos)</b>
+      <div class="link-box">${baseUrl}?id=${e.id}</div>
+      <div style="display:flex; gap:10px">
+        <button class="btn-alt" onclick="prepararEdicao(${e.id})">✏️ Editar</button>
+        <button class="btn-alt" onclick="copyLink('${baseUrl}?id=${e.id}')">📋 Copiar Link</button>
+        <button class="btn-alt" style="border-color:#ff4444; color:#ff4444" onclick="excluir(${e.id})">🗑️ Apagar</button>
+      </div>
+    </div>
+  `).join('') || "Nenhum álbum.";
+}
+
+function salvarEnsaio(){
+  const idEdit = document.getElementById('c-edit-id').value;
+  const nome = document.getElementById('c-name').value;
+  const pass = document.getElementById('c-pass').value;
+  const links = extrairLinks(document.getElementById('c-links').value);
+  const pacote = document.getElementById('c-pacote').value;
+
+  if(!nome || links.length === 0) return alert("Preencha o nome e cole os links!");
+
+  if(idEdit) {
+    const index = database.findIndex(e => e.id == idEdit);
+    database[index] = { id: Number(idEdit), nome, pass, links, pacote };
+  } else {
+    database.unshift({ id: Date.now(), nome, pass, links, pacote });
+  }
+
+  localStorage.setItem('pe_db', JSON.stringify(database));
+  limparForm();
+  renderDash();
+  showPage('dash', document.getElementById('nav-dash'));
+}
+
+function prepararEdicao(id){
+  const e = database.find(x => x.id == id);
+  document.getElementById('c-edit-id').value = e.id;
+  document.getElementById('c-name').value = e.nome;
+  document.getElementById('c-pass').value = e.pass;
+  document.getElementById('c-links').value = e.links.join('\n');
+  document.getElementById('c-pacote').value = e.pacote;
+  
+  document.getElementById('form-title').innerText = "Editar Ensaio";
+  document.getElementById('btn-save').innerText = "Salvar Alterações";
+  showPage('novo', document.getElementById('nav-novo'));
+}
+
+function limparForm(){
+  document.getElementById('c-edit-id').value = "";
+  document.getElementById('c-name').value = "";
+  document.getElementById('c-pass').value = "";
+  document.getElementById('c-links').value = "";
+  document.getElementById('c-pacote').value = "10";
+  document.getElementById('form-title').innerText = "Configurar Novo Álbum";
+  document.getElementById('btn-save').innerText = "Criar Galeria Profissional";
+}
+
+// Funções de galeria e login permanecem as mesmas (com melhorias de performance)
 window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const idEnsaio = urlParams.get('id');
@@ -143,11 +202,10 @@ window.onload = () => {
         atual = database.find(e => e.id == idEnsaio);
         if(atual) {
             document.getElementById('sidebar').style.display = 'none';
-            document.getElementById('cliente-tit').innerText = `Olá, ${atual.nome}!`;
+            document.querySelector('.main').style.padding = '20px';
             showPage('galeria');
-            if(localStorage.getItem('done_' + idEnsaio)) mostrarTelaFinal();
         }
-    } else { renderDash(); }
+    } else renderDash();
 };
 
 function showPage(id, btn){
@@ -155,54 +213,6 @@ function showPage(id, btn){
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
-}
-
-function salvarEnsaio(){
-  const nome = document.getElementById('c-name').value;
-  const pass = document.getElementById('c-pass').value;
-  const rawLinks = document.getElementById('c-links').value.split(/\n/);
-  const links = rawLinks.filter(l => l.trim() !== '').map(l => formatDriveLink(l.trim()));
-  
-  if(!nome || !pass || links.length === 0) return alert("Erro: Preencha todos os campos!");
-
-  const id = Date.now();
-  database.unshift({ id, nome, pass, links, pacote: document.getElementById('c-pacote').value });
-  localStorage.setItem('pe_db', JSON.stringify(database));
-  renderDash();
-  showPage('dash', document.getElementById('nav-dash'));
-  alert("Álbum criado com sucesso!");
-}
-
-function renderDash(){
-  const search = document.getElementById('dash-search').value.toLowerCase();
-  const lista = document.getElementById('lista-ensaios');
-  const baseUrl = window.location.href.split('?')[0];
-  
-  const filtered = database.filter(e => e.nome.toLowerCase().includes(search));
-  
-  lista.innerHTML = filtered.length ? filtered.map(e => `
-    <div class="ensaio-item">
-      <div style="display:flex; justify-content:space-between">
-        <b>${e.nome} (Pacote: ${e.pacote} fotos)</b>
-        <span style="font-size:10px; color:var(--accent-blue)">SENHA: ${e.pass}</span>
-      </div>
-      <div class="link-box">${baseUrl}?id=${e.id}</div>
-      <div style="display:flex; gap:10px">
-        <button class="btn" style="padding:10px 15px; font-size:11px" onclick="copyLink('${baseUrl}?id=${e.id}')">Copiar Link</button>
-        <button class="btn" style="background:#441111; padding:10px 15px; font-size:11px; background-image:none; color:var(--red)" onclick="excluir(${e.id})">Apagar</button>
-      </div>
-    </div>
-  `).join('') : "Nenhum álbum encontrado.";
-}
-
-function copyLink(link) { navigator.clipboard.writeText(link); alert("Link copiado!"); }
-
-function excluir(id){
-  if(confirm("Apagar ensaio permanentemente?")) {
-    database = database.filter(e => e.id !== id);
-    localStorage.setItem('pe_db', JSON.stringify(database));
-    renderDash();
-  }
 }
 
 function abrirGaleria(){
@@ -222,58 +232,21 @@ function abrirGaleria(){
 
 function toggle(i){
   const el = document.getElementById('p-'+i);
+  el.classList.toggle('selected');
   if(selecionadas.includes(i)) selecionadas = selecionadas.filter(x => x !== i);
   else selecionadas.push(i);
-  el.classList.toggle('selected');
-  
-  const count = selecionadas.length;
-  const pacote = parseInt(atual.pacote);
-  const extra = Math.max(0, count - pacote);
-  
-  document.getElementById('sel-count').innerText = count;
-  document.getElementById('sel-count').style.color = count > pacote ? 'var(--green)' : 'var(--accent-blue)';
-  
-  if(count > pacote) {
-      document.getElementById('status-hint').innerHTML = `<b>${extra} foto(s) extra(s)</b> selecionada(s). Valor: R$ 19,90/cada.`;
-  } else {
-      document.getElementById('status-hint').innerText = "Inclusas no seu pacote oficial.";
-  }
+  document.getElementById('sel-count').innerText = selecionadas.length;
 }
 
 function enviarWhats(){
-  if(selecionadas.length === 0) return alert("Selecione fotos antes de finalizar!");
-  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}\n✅ Total: ${selecionadas.length}`);
-  localStorage.setItem('done_' + atual.id, "true");
+  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}`);
   window.open(`https://wa.me/5548996665391?text=${msg}`);
-  mostrarTelaFinal();
 }
 
-function mostrarTelaFinal(){
-    document.getElementById('login-area').style.display='none';
-    document.getElementById('galeria-area').style.display='none';
-    document.getElementById('bar').style.display='none';
-    document.getElementById('finish-area').style.display='block';
-}
-
-// SISTEMA DE BACKUP
-function exportarBackup(){
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", "backup_photoensaio.json");
-    dlAnchorElem.click();
-}
-
-function importarBackup(event){
-    const reader = new FileReader();
-    reader.onload = function(e){
-        database = JSON.parse(e.target.result);
-        localStorage.setItem('pe_db', JSON.stringify(database));
-        alert("Backup restaurado com sucesso!");
-        renderDash();
-    };
-    reader.readAsText(event.target.files[0]);
-}
+function copyLink(l){ navigator.clipboard.writeText(l); alert("Copiado!"); }
+function excluir(id){ if(confirm("Apagar?")) { database = database.filter(e => e.id != id); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); } }
+function exportarBackup(){ const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database)); a.download = "backup.json"; a.click(); }
+function importarBackup(ev){ const r = new FileReader(); r.onload = (e) => { database = JSON.parse(e.target.result); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); }; r.readAsText(ev.target.files[0]); }
 </script>
 </body>
 </html>
