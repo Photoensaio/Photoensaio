@@ -201,7 +201,7 @@ function enviarWhats(){
   const total = selecionadas.length;
   const extras = Math.max(0, total - pacote);
   const resumo = selecionadas.map(x => x + 1).sort((a,b)=>a-b).join(', ');
-  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Finalizei minha seleção:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${resumo}\n✅ Total: ${total} fotos\n💰 Extras: ${extras}`);
+  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Finalizei minha seleção:\n Cliente: ${atual.nome}\n Fotos: ${resumo}\n Total: ${total} fotos\n Extras: ${extras}`);
   window.open(`https://wa.me/5548996665391?text=${msg}`);
 }
 </script>
