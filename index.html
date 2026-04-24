@@ -46,12 +46,25 @@ input:focus{border-color:var(--accent-blue)}
 
 .selection-bar{position:fixed; bottom:30px; left:290px; right:30px; background:rgba(15,15,18,0.92); backdrop-filter:blur(15px); padding:20px 40px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0, 209, 255, 0.3); z-index:100; box-shadow:0 20px 40px rgba(0,0,0,0.8)}
 .info-txt .status{font-family:var(--fs); font-size:22px}
-.info-txt .hint{font-size:12px; color:var(--text-muted); margin-top:5px}
 
 .success-screen{text-align:center; padding:120px 20px; display:none}
+
+/* Estilo da modal de seleção */
+.modal{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000; padding:50px; overflow-y:auto}
+.modal-content{background:var(--bg2); max-width:800px; margin:0 auto; padding:30px; border-radius:20px; border:1px solid var(--accent-blue)}
 </style>
 </head>
 <body oncontextmenu="return false">
+
+<div id="modal-selecao" class="modal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+            <h2 id="modal-title" style="font-family:var(--fs)">Fotos Selecionadas</h2>
+            <button class="btn-alt" onclick="fecharModal()">Fechar</button>
+        </div>
+        <div id="modal-lista-links" style="display:flex; flex-direction:column; gap:10px"></div>
+    </div>
+</div>
 
 <div class="app">
   <div class="sidebar" id="sidebar">
@@ -92,7 +105,6 @@ input:focus{border-color:var(--accent-blue)}
     <div id="page-galeria" class="page">
       <div id="login-area" style="text-align:center; padding-top:100px; max-width:400px; margin:0 auto">
         <h2 id="cliente-tit" style="font-family:var(--fs); font-size:36px">Olá!</h2>
-        <p style="color:var(--text-muted); margin-bottom:40px">Acesse sua galeria privada com a senha fornecida.</p>
         <input id="pass-input" type="password" placeholder="Sua senha" style="text-align:center; font-size:18px">
         <button class="btn" onclick="abrirGaleria()" style="width:100%">Entrar</button>
       </div>
@@ -102,7 +114,7 @@ input:focus{border-color:var(--accent-blue)}
       </div>
       <div id="finish-area" class="success-screen">
         <h2 style="color:var(--accent-blue); font-family:var(--fs); font-size:32px">Seleção Enviada!</h2>
-        <p>Suas fotos já foram selecionadas. Em breve, realizaremos o envio oficial em alta resolução. Obrigado!</p>
+        <p>Suas fotos já foram selecionadas. Obrigado!</p>
       </div>
     </div>
   </div>
@@ -111,7 +123,6 @@ input:focus{border-color:var(--accent-blue)}
 <div class="selection-bar" id="bar" style="display:none">
   <div class="info-txt">
     <div class="status"><b id="sel-count">0</b> <span style="font-size:15px; opacity:0.6">de</span> <span id="p-total">10</span></div>
-    <div class="hint" id="status-hint">Inclusas no seu pacote oficial.</div>
   </div>
   <button class="btn" onclick="enviarWhats()" style="padding:15px 40px; border-radius:50px">Finalizar Seleção</button>
 </div>
@@ -123,13 +134,12 @@ let atual = null;
 
 function extrairLinks(texto) {
     const regex = /(https?:\/\/[^\s,]+)/g;
-    let links = texto.match(regex) || [];
-    return links.map(link => {
+    return (texto.match(regex) || []).map(link => {
         if(link.includes('drive.google.com')){
             let id = '';
             if(link.includes('/d/')) id = link.split('/d/')[1].split('/')[0];
             else if(link.includes('id=')) id = link.split('id=')[1].split('&')[0];
-            return `https://lh3.googleusercontent.com/u/0/d/${id}=w1000`;
+            return `https://docs.google.com/uc?id=${id}`;
         }
         return link;
     });
@@ -157,7 +167,10 @@ function renderDash(){
   
   lista.innerHTML = filtered.map(e => `
     <div class="ensaio-item">
-      <b>${e.nome} (${e.pacote} fotos)</b>
+      <div style="display:flex; justify-content:space-between">
+        <b>${e.nome} (${e.pacote} fotos)</b>
+        ${e.selecionadas_links ? `<button class="btn-alt" style="border-color:var(--green); color:var(--green)" onclick="verSelecao(${e.id})">👁️ Ver Seleção</button>` : ''}
+      </div>
       <div class="link-box">${baseUrl}?id=${e.id}</div>
       <div style="display:flex; gap:10px">
         <button class="btn-alt" onclick="prepararEdicao(${e.id})">✏️ Editar</button>
@@ -179,7 +192,7 @@ function salvarEnsaio(){
 
   if(idEdit) {
     const idx = database.findIndex(e => e.id == idEdit);
-    database[idx] = { id: Number(idEdit), nome, pass, links, pacote };
+    database[idx] = { ...database[idx], nome, pass, links, pacote };
   } else {
     database.unshift({ id: Date.now(), nome, pass, links, pacote });
   }
@@ -197,7 +210,6 @@ function abrirGaleria(){
     document.getElementById('bar').style.display='flex';
     document.getElementById('p-total').innerText = atual.pacote;
     document.getElementById('boas-vindas').innerText = `Seleção de ${atual.nome}`;
-    
     document.getElementById('grid').innerHTML = atual.links.map((l, i) => `
       <div class="photo-item" id="p-${i}" onclick="toggle(${i})">
         <div class="watermark"><span>PHOTO ENSAIO</span></div>
@@ -212,42 +224,56 @@ function toggle(i){
   el.classList.toggle('selected');
   if(selecionadas.includes(i)) selecionadas = selecionadas.filter(x => x !== i);
   else selecionadas.push(i);
-  
-  const count = selecionadas.length;
-  const pacote = parseInt(atual.pacote);
-  const extra = Math.max(0, count - pacote);
-  
-  document.getElementById('sel-count').innerText = count;
-  document.getElementById('sel-count').style.color = count > pacote ? 'var(--green)' : 'var(--accent-blue)';
-  
-  if(count > pacote) {
-      document.getElementById('status-hint').innerHTML = `<b>${extra} foto(s) extra(s)</b> selecionada(s). Valor: R$ 19,90/cada.`;
-  } else {
-      document.getElementById('status-hint').innerText = "Inclusas no seu pacote oficial.";
-  }
+  document.getElementById('sel-count').innerText = selecionadas.length;
 }
 
 function enviarWhats(){
-  const msg = encodeURIComponent(`Olá, Photo EnsAIo! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}\n✅ Total: ${selecionadas.length}`);
+  const linksEscolhidos = selecionadas.map(i => atual.links[i]);
+  const msg = encodeURIComponent(`Olá! Seleção Finalizada:\n👤 Cliente: ${atual.nome}\n📸 Fotos: ${selecionadas.map(x=>x+1).join(', ')}`);
+  
+  // Envia a informação para o seu Dashboard (localStorage sincronizado)
+  atual.selecionadas_links = linksEscolhidos;
+  const dbIndex = database.findIndex(e => e.id == atual.id);
+  database[dbIndex] = atual;
+  localStorage.setItem('pe_db', JSON.stringify(database));
+  
   localStorage.setItem('done_' + atual.id, "true");
   window.open(`https://wa.me/5548996665391?text=${msg}`);
   mostrarTelaFinal();
 }
 
+function verSelecao(id){
+    const e = database.find(x => x.id == id);
+    document.getElementById('modal-title').innerText = `Fotos de ${e.nome}`;
+    document.getElementById('modal-lista-links').innerHTML = e.selecionadas_links.map((link, i) => `
+        <div style="background:var(--bg3); padding:15px; border-radius:10px; display:flex; justify-content:space-between; align-items:center">
+            <span style="font-size:12px; color:var(--accent-blue)">Foto #${i+1}</span>
+            <a href="${link}" target="_blank" class="btn-alt" style="text-decoration:none; color:var(--green)">Abrir no Drive ↗</a>
+        </div>
+    `).join('');
+    document.getElementById('modal-selecao').style.display = 'block';
+}
+
+function fecharModal(){ document.getElementById('modal-selecao').style.display = 'none'; }
 function mostrarTelaFinal(){
     document.getElementById('login-area').style.display='none';
     document.getElementById('galeria-area').style.display='none';
     document.getElementById('bar').style.display='none';
     document.getElementById('finish-area').style.display='block';
 }
-
 function showPage(id, btn){
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
 }
-
+function limparForm(){
+  document.getElementById('c-edit-id').value = ""; document.getElementById('c-name').value = "";
+  document.getElementById('c-pass').value = ""; document.getElementById('c-links').value = "";
+}
+function copyLink(l){ navigator.clipboard.writeText(l); alert("Copiado!"); }
+function excluir(id){ if(confirm("Apagar?")) { database = database.filter(e => e.id != id); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); } }
+function exportarBackup(){ const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database)); a.download = "backup.json"; a.click(); }
 function prepararEdicao(id){
   const e = database.find(x => x.id == id);
   document.getElementById('c-edit-id').value = e.id;
@@ -255,25 +281,8 @@ function prepararEdicao(id){
   document.getElementById('c-pass').value = e.pass;
   document.getElementById('c-links').value = e.links.join('\n');
   document.getElementById('c-pacote').value = e.pacote;
-  document.getElementById('form-title').innerText = "Editar Ensaio";
-  document.getElementById('btn-save').innerText = "Salvar Alterações";
   showPage('novo', document.getElementById('nav-novo'));
 }
-
-function limparForm(){
-  document.getElementById('c-edit-id').value = "";
-  document.getElementById('c-name').value = "";
-  document.getElementById('c-pass').value = "";
-  document.getElementById('c-links').value = "";
-  document.getElementById('c-pacote').value = "10";
-  document.getElementById('form-title').innerText = "Configurar Novo Álbum";
-  document.getElementById('btn-save').innerText = "Criar Galeria Profissional";
-}
-
-function copyLink(l){ navigator.clipboard.writeText(l); alert("Copiado!"); }
-function excluir(id){ if(confirm("Apagar?")) { database = database.filter(e => e.id != id); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); } }
-function exportarBackup(){ const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(database)); a.download = "backup.json"; a.click(); }
-function importarBackup(ev){ const r = new FileReader(); r.onload = (e) => { try { database = JSON.parse(e.target.result); localStorage.setItem('pe_db', JSON.stringify(database)); renderDash(); alert("Sucesso!"); } catch(err) { alert("Erro no arquivo!"); } }; r.readAsText(ev.target.files[0]); }
 </script>
 </body>
 </html>
